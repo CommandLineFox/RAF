@@ -10,7 +10,7 @@ export default class Eval extends Command {
         super({
             name: "Eval",
             triggers: ["eval", "evaluate"],
-            description: "Runs given code",
+            description: "Извршава дат код",
             group: OwnerOnly,
             botPermissions: ["EMBED_LINKS"]
         });

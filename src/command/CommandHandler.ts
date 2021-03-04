@@ -47,7 +47,7 @@ export default class CommandHandler {
 
     private async handleMention(message: Message, content: string) {
         if (content.length === 0) {
-            await message.reply(`My prefix here is \`${await this.client.getPrefix(message.guild!)}\``);
+            await message.reply(`Мој префикс овде је \`${await this.client.getPrefix(message.guild!)}\``);
             return;
         }
         await this.handlePrefix(message, content);

@@ -9,7 +9,7 @@ export default class Help extends Command {
         super({
             name: "Help",
             triggers: ["help", "commands", "cmds"],
-            description: "Displays all my commands",
+            description: "Показује све моје команде",
             group: Basic,
             botPermissions: ["EMBED_LINKS"]
         });
@@ -24,9 +24,8 @@ export default class Help extends Command {
             const mod = await client.isMod(member, guild);
 
             const help = new MessageEmbed()
-                .setTitle("Here's the list of all my commands")
-                .setColor("#61e096")
-                .setFooter(`Requested by ${author.tag}`, author.displayAvatarURL());
+                .setTitle("Ево свих мојих команди")
+                .setFooter(`Захтевано од стране ${author.tag}`, author.displayAvatarURL());
             CommandRegistry.groups.forEach((group) => {
                 if (group.ownerOnly && !client.isOwner(event.author)) {
                     return;

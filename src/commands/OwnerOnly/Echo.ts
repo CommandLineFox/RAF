@@ -7,7 +7,7 @@ export default class Echo extends Command {
         super({
             name: "Echo",
             triggers: ["echo", "say"],
-            description: "Repeats the message",
+            description: "Понавља поруку",
             group: OwnerOnly
         });
     }

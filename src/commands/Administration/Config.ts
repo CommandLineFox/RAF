@@ -3,15 +3,16 @@ import { Administration } from "~/Groups";
 import CommandEvent from "@command/CommandEvent";
 import { Guild } from "@models/Guild";
 import { MessageEmbed } from "discord.js";
-import { databaseCheck, displayData } from "@utils/CommandUtils";
 import { splitArguments } from "@utils/Utils";
+import { DatabaseCheckOption, DisplayData } from "~/utils/Types";
+import { Database } from "@database/Database";
 
 export default class Config extends Command {
     public constructor() {
         super({
             name: "Config",
             triggers: ["config", "cfg", "setup"],
-            description: "Configures various settings for the guild",
+            description: "Подешавања одређених функција за овај сервер",
             group: Administration,
             botPermissions: ["EMBED_LINKS", "MANAGE_ROLES"]
         });
@@ -21,7 +22,7 @@ export default class Config extends Command {
         const client = event.client;
         const database = client.database;
 
-        const guild = await client.getGuildFromDatabase(database!, event.guild.id);
+        const guild = await database?.getGuild(event.guild.id);
         if (!guild) {
             return;
         }
@@ -38,12 +39,18 @@ export default class Config extends Command {
                 break;
             }
 
-            case "mod":
-            case "mods":
-            case "moderator":
-            case "moderators":
-            case "staff": {
+            case "mod": {
                 await moderatorSettings(event, option, args, guild);
+                break;
+            }
+
+            case "notif": {
+                await notifRoleSettings(event, option, args, guild);
+                break;
+            }
+
+            case "verified": {
+                await verifiedSettings(event, option, args, guild);
                 break;
             }
         }
@@ -62,18 +69,18 @@ async function prefixSettings(event: CommandEvent, option: string, args: string,
     switch (option.toLowerCase()) {
         case "set": {
             if (args.length > 5) {
-                await event.send("The prefix can be up to 5 characters.");
+                await event.send("Префикс може бити до 5 карактера.");
                 break;
             }
 
             await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.prefix": args } });
-            await event.send(`The prefix has been set to \`${args}\``);
+            await event.send(`Префикс је постављен на \`${args}\``);
             break;
         }
 
         case "reset": {
             await database?.guilds.updateOne({ id: guild?.id }, { "$unset": { "config.prefix": "" } });
-            await event.send(`The prefix has been set to \`${client.config.prefix}\``);
+            await event.send(`Префикс је враћен на \`${client.config.prefix}\``);
             break;
         }
     }
@@ -88,36 +95,118 @@ async function moderatorSettings(event: CommandEvent, option: string, args: stri
         return;
     }
 
-    if (!args) {
-        await event.send("You need to specify a role.");
-        return;
-    }
-
-    const role = event.guild.roles.cache.find(role => role.id === args || role.name === args || `<@&${role.id}>` === args);
-    if (!role) {
-        await event.send("Couldn't find the role you're looking for.");
-        return;
-    }
-
     switch (option.toLowerCase()) {
         case "add": {
+            if (!args) {
+                await event.send("Морате да унесете улогу.");
+                return;
+            }
+
+            const role = event.guild.roles.cache.find(role => role.id === args || role.name === args || `<@&${role.id}>` === args);
+            if (!role) {
+                await event.send("Нисам нашао ту улогу.");
+                return;
+            }
+
             if (guild.config.roles?.moderator?.includes(role.id)) {
-                await event.send("The specified role is already a moderator role.");
+                await event.send("Ова улога је већ модератор.");
                 break;
             }
 
             await database?.guilds.updateOne({ id: guild.id }, { "$push": { "config.roles.moderator": role.id } });
-            await event.send(`Added \`${role.name}\` as a moderator role.`);
+            await event.send(`\`${role.name}\` је додата као модератор.`);
             break;
         }
+
         case "remove": {
+            if (!args) {
+                await event.send("Морате да унесете улогу.");
+                return;
+            }
+
+            const role = event.guild.roles.cache.find(role => role.id === args || role.name === args || `<@&${role.id}>` === args);
+            if (!role) {
+                await event.send("Нисам нашао ту улогу.");
+                return;
+            }
+
             if (!guild.config.roles?.moderator?.includes(role.id)) {
-                await event.send("The specified role isn't a moderator role.");
+                await event.send("Ова улога није модератор.");
                 break;
             }
 
             await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.moderator": role.id } });
-            await event.send(`\`${role.name}\` is no longer a moderator role.`);
+            await event.send(`\`${role.name}\` више није модератор.`);
+            break;
+        }
+    }
+}
+
+async function notifRoleSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const database = event.client.database;
+    await databaseCheck(database!, guild, "roles");
+
+    if (!option) {
+        await displayData(event, guild, "notifications", true);
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "set": {
+            if (!args) {
+                await event.send("Морате да унесете улогу.");
+                return;
+            }
+
+            const role = event.guild.roles.cache.find(role => role.id === args || role.name === args || `<@&${role.id}>` === args);
+            if (!role) {
+                event.send("Нисам нашао ту улогу.");
+                return;
+            }
+
+            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.notifications": args } });
+            await event.send(`Улога за нотификације је сада \`${role.name}\``);
+            break;
+        }
+
+        case "remove": {
+            await database?.guilds.updateOne({ id: guild?.id }, { "$unset": { "config.notifications": "" } });
+            await event.send("Уклоњена је улога за нотификације.");
+            break;
+        }
+    }
+}
+
+async function verifiedSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const database = event.client.database;
+    await databaseCheck(database!, guild, "roles");
+
+    if (!option) {
+        await displayData(event, guild, "verified", true);
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "set": {
+            if (!args) {
+                await event.send("Морате да унесете улогу.");
+                return;
+            }
+
+            const role = event.guild.roles.cache.find(role => role.id === args || role.name === args || `<@&${role.id}>` === args);
+            if (!role) {
+                event.send("Нисам нашао ту улогу.");
+                return;
+            }
+
+            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.verified": args } });
+            await event.send(`Улога за верификоване чланове је сада \`${role.name}\``);
+            break;
+        }
+
+        case "remove": {
+            await database?.guilds.updateOne({ id: guild?.id }, { "$unset": { "config.verified": "" } });
+            await event.send("Уклоњена је улога за верификоване чланове.");
             break;
         }
     }
@@ -125,12 +214,148 @@ async function moderatorSettings(event: CommandEvent, option: string, args: stri
 
 async function displayAllSettings(event: CommandEvent, guild: Guild) {
     const embed = new MessageEmbed()
-        .setTitle("The current settings for this server:")
-        .addField("Prefix", await displayData(event, guild, "prefix"), true)
-        .addField("Moderators", await displayData(event, guild, "moderators"), true)
-        .addField("Uloge", await displayData(event, guild, "roles"), true)
-        .setColor("#61e096")
-        .setFooter(`Requested by ${event.author.tag}`, event.author.displayAvatarURL());
+        .setTitle("Подешавања за овај сервер:")
+        .addField("Префикс", await displayData(event, guild, "prefix"), true)
+        .addField("Модератори", await displayData(event, guild, "moderators"), true)
+        .addField("Нотификације", await displayData(event, guild, "notifications"), true)
+        .addField("Верификовани", await displayData(event, guild, "verified"), true)
+        .setFooter(`Захтевано од стране ${event.author.tag}`, event.author.displayAvatarURL());
 
     await event.send({ embed: embed });
+}
+
+async function databaseCheck(database: Database, guild: Guild, option: DatabaseCheckOption): Promise<void> {
+    switch (option.toLowerCase()) {
+        case "roles": {
+            if (!guild.config.roles) {
+                await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles": {} } });
+            }
+            break;
+        }
+
+        case "moderator": {
+            if (!guild.config.roles) {
+                await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles": { "moderator": [] } } });
+            } else if (!guild.config.roles?.moderator) {
+                await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.moderator": [] } });
+            }
+            break;
+        }
+
+        case "channels": {
+            if (!guild.config.channels) {
+                await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.channels": {} } });
+            }
+            break;
+        }
+    }
+}
+
+async function displayData(event: CommandEvent, guild: Guild, type: DisplayData, specific?: boolean): Promise<any> {
+    const client = event.client;
+    const database = client.database;
+    if (!specific) {
+        switch (type.toLowerCase()) {
+            case "prefix": {
+                return guild?.config.prefix ?? client.config.prefix;
+            }
+
+            case "moderators": {
+                const mods = guild?.config.roles?.moderator;
+                if (!mods || mods.length === 0) {
+                    return "Нема улога које су модератри.";
+                }
+
+                let list = "";
+                for (const mod of mods) {
+                    const role = event.guild.roles.cache.get(mod);
+                    if (!role) {
+                        await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.moderator": mod } });
+                    } else {
+                        list += `${role.name}\n`;
+                    }
+                }
+
+                return list;
+            }
+
+            case "notifications": {
+                const notif = guild.config.roles?.notifications;
+                if (!notif) {
+                    return "Нема улоге за нотификације.";
+                }
+
+                const uloga = event.guild.roles.cache.get(notif);
+                return uloga?.name;
+            }
+
+            case "verified": {
+                const verified = guild.config.roles?.verified;
+                if (!verified) {
+                    return "Нема улоге за верификоване.";
+                }
+
+                const uloga = event.guild.roles.cache.get(verified);
+                return uloga?.name;
+            }
+        }
+    } else {
+        switch (type.toLowerCase()) {
+            case "prefix": {
+                await event.send(`Prefix je trenutno \`${guild?.config.prefix ?? client.config.prefix}\``);
+                break;
+            }
+
+            case "moderators": {
+                const mods = guild?.config.roles?.moderator;
+                if (!mods || mods.length === 0) {
+                    await event.send("Нема улога које су модератори.");
+                    return;
+                }
+
+                const embed = new MessageEmbed()
+                    .setTitle("Ове улоге су модератори:")
+                    .setFooter(`Requested by ${event.author.tag}`, event.author.displayAvatarURL());
+
+                let list = "";
+                for (const mod of mods) {
+                    const role = event.guild.roles.cache.get(mod);
+                    if (!role) {
+                        await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.moderator": mod } });
+                    } else {
+                        list += `${role.name}\n`;
+                    }
+                }
+
+                embed.setDescription(list);
+                await event.send({ embed: embed });
+                break;
+            }
+
+            case "notifications": {
+                const notif = guild.config.roles?.notifications;
+                if (!notif) {
+                    event.send("Нема улоге за нотификације.");
+                    return;
+                }
+
+                const uloga = event.guild.roles.cache.get(notif);
+                event.send(`Улога за нотификације је ${uloga?.name}`);
+                break;
+            }
+
+            case "verified": {
+                const verified = guild.config.roles?.verified;
+                if (!verified) {
+                    event.send("Нема улоге за верификоване.");
+                    return;
+                }
+
+                const uloga = event.guild.roles.cache.get(verified);
+                event.send(`Улога за верификоване је ${uloga?.name}`);
+                break;
+            }
+        }
+    }
+    return;
 }

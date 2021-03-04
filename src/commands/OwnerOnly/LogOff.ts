@@ -7,7 +7,7 @@ export default class LogOff extends Command {
         super({
             name: "LogOff",
             triggers: ["logoff", "shutdown"],
-            description: "Turns the bot off",
+            description: "Искључује бота",
             group: OwnerOnly
         });
     }

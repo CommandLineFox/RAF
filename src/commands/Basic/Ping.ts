@@ -8,7 +8,7 @@ export default class Ping extends Command {
         super({
             name: "Ping",
             triggers: ["ping"],
-            description: "Shows the bot's response time",
+            description: "Показује време одзива",
             group: Basic,
             botPermissions: ["EMBED_LINKS"]
         });
@@ -17,12 +17,12 @@ export default class Ping extends Command {
     public run(event: CommandEvent): void {
         const client = event.client;
         try {
-            event.send("Pinging...")
+            event.send("Слање...")
                 .then(async (msg) => {
                     msg = msg as Message;
                     const ping = new MessageEmbed()
-                        .addField(":hourglass: Response time: ", `${msg.createdTimestamp - event.message.createdTimestamp}ms`, false)
-                        .addField(":heartbeat: Bot ping: ", `${Math.round(event.client.ws.ping)}ms`, true);
+                        .addField(":hourglass: Време одзива: ", `${msg.createdTimestamp - event.message.createdTimestamp}ms`, false)
+                        .addField(":heartbeat: Откуцај бота: ", `${Math.round(event.client.ws.ping)}ms`, true);
                     await msg.edit({ content: "", embed: ping });
                 });
         } catch (error) {

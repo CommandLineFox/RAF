@@ -11,5 +11,6 @@ export default {
             useUnifiedTopology: boolean(true)
         })
     }),
-    questions: array(base.string)
+    questions: array(base.string),
+    welcome: string("")
 };

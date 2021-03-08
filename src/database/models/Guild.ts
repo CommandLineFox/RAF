@@ -20,4 +20,5 @@ export interface Guild {
     _id: ObjectId;
     id: string;
     config: GuildConfig;
+    applications: string[];
 }

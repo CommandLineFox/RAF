@@ -8,7 +8,7 @@ export default class Help extends Command {
     public constructor() {
         super({
             name: "Help",
-            triggers: ["help", "commands", "cmds"],
+            triggers: ["help", "komande", "команде", "pomoc", "помоћ"],
             description: "Показује све моје команде",
             group: Basic,
             botPermissions: ["EMBED_LINKS"]

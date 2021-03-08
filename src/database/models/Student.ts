@@ -1,10 +1,4 @@
 import { ObjectId } from "bson";
-import { Smer } from "@utils/Types";
-
-export interface Index {
-    broj: number;
-    godina: number;
-}
 
 export interface Student {
     _id: ObjectId;
@@ -12,6 +6,7 @@ export interface Student {
     ime: string;
     prezime: string;
     godina: number;
-    smer: Smer;
-    index: Index;
+    smer: string;
+    broj: number;
+    godinaUpisa: number;
 }

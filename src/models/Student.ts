@@ -2,7 +2,6 @@ import { ObjectId } from "bson";
 
 export interface Student {
     _id: ObjectId;
-    id: string;
     ime: string;
     prezime: string;
     godina: number;

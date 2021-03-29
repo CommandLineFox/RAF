@@ -1,5 +1,6 @@
 # Files
 config.json
+data.json
 *.tsbuildinfo
 
 #Folders

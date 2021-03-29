@@ -2,6 +2,7 @@ import Command from "@command/Command";
 import { Public } from "~/Groups";
 import CommandEvent from "@command/CommandEvent";
 import { Grupa, Smer } from "@utils/Types";
+import { Role } from "discord.js";
 
 export default class Prijava extends Command {
     public constructor() {
@@ -35,10 +36,12 @@ export default class Prijava extends Command {
             return;
         }
 
-        if (guild.applications.includes(member.user.id)) {
+        if (guild.applications.includes(member.id)) {
             event.send("Већ сте у процесу пријаве.");
             return;
         }
+
+        database.guilds.updateOne({ id: guild.id }, { "$push": { "applications": member.id } });
 
         const pitanja = client.config.questions as string[];
         const odgovori = [] as string[];
@@ -70,27 +73,35 @@ export default class Prijava extends Command {
                 });
         }
 
-        for (let i = 0; i < odgovori.length; i++) {
-            switch (i) {
-                case 0: {
-                    member.setNickname(CapitalizeWords(odgovori[0]));
-                    break;
+        addRoles(event, odgovori, role);
+    }
+}
+
+function addRoles(event: CommandEvent, odgovori: string[], role: Role) {
+    const member = event.member;
+
+    for (let i = 0; i < odgovori.length; i++) {
+        switch (i) {
+            case 0: {
+                member.setNickname(CapitalizeWords(odgovori[0]));
+                break;
+            }
+
+            case 1:
+            case 2:
+            case 3: {
+                const role = event.guild.roles.cache.find(role => role.name === odgovori[i]);
+                if (!role) {
+                    member.user.send("Дошло је до грешке при тражењу улоге. Молимо Вас контактирајте администратора.");
+                    return;
                 }
 
-                case 1:
-                case 2:
-                case 3: {
-                    const role = event.guild.roles.cache.find(role => role.name === odgovori[i]);
-                    if (!role) {
-                        member.user.send("Дошло је до грешке при тражењу улоге. Молимо Вас контактирајте администратора.");
-                        return;
-                    }
-
-                    member.roles.add(role);
-                }
+                member.roles.add(role);
             }
         }
     }
+
+    member.roles.add(role);
 }
 
 function provera(argument: string, index: number): string {

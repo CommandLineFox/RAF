@@ -16,7 +16,6 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "pretty": true,
     "removeComments": true,
@@ -33,6 +32,9 @@
     "paths": {
       "~/*": [
         "src/*"
+      ],
+      "@students": [
+        "data.json"
       ],
       "@command/*": [
         "src/command/*"

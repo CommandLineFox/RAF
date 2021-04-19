@@ -36,7 +36,7 @@ export default class Prijava extends Command {
             return;
         }
 
-        if (guild.applications.includes(member.id)) {
+        if (guild.applications.length > 0 && guild.applications.includes(member.id)) {
             event.send("Већ сте у процесу пријаве.");
             return;
         }
@@ -74,6 +74,7 @@ export default class Prijava extends Command {
         }
 
         addRoles(event, odgovori, role);
+        member.user.send("Успешно сте се верификовали. Уколико постоји нека грешка, молимо Вас контактирајте модератора или администратора сервера.");
     }
 }
 

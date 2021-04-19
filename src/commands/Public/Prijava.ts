@@ -2,7 +2,8 @@ import Command from "@command/Command";
 import { Public } from "~/Groups";
 import CommandEvent from "@command/CommandEvent";
 import { Grupa, Smer } from "@utils/Types";
-import { Role } from "discord.js";
+import { GuildMember, MessageEmbed, Role, TextChannel } from "discord.js";
+import { Guild } from "@models/Guild";
 
 export default class Prijava extends Command {
     public constructor() {
@@ -69,12 +70,22 @@ export default class Prijava extends Command {
                         })
                         .catch(() => {
                             member.user.send("Прошло је 2 минута. Молимо Вас пријавите се поново.");
+                            database.guilds.updateOne({ id: guild.id }, { "$pull": { "applications": member.id } });
                         });
+                })
+                .catch(() => {
+                    event.send("Молимо Вас омогућите боту да Вас контактира у приватним порукама како би сте се верификовали.");
+                    database.guilds.updateOne({ id: guild.id }, { "$pull": { "applications": member.id } });
+                    greska = true;
                 });
         }
 
-        addRoles(event, odgovori, role);
-        member.user.send("Успешно сте се верификовали. Уколико постоји нека грешка, молимо Вас контактирајте модератора или администратора сервера.");
+        if (!greska) {
+            addRoles(event, odgovori, role);
+            member.user.send("Успешно сте се верификовали. Уколико постоји нека грешка, молимо Вас контактирајте модератора или администратора сервера.");
+            database.guilds.updateOne({ id: guild.id }, { "$pull": { "applications": member.id } });
+            log(event, guild, member, odgovori);
+        }
     }
 }
 
@@ -103,6 +114,34 @@ function addRoles(event: CommandEvent, odgovori: string[], role: Role) {
     }
 
     member.roles.add(role);
+}
+
+function log(event: CommandEvent, guild: Guild, member: GuildMember, odgovori: string[]): void {
+    if (!guild.config.channels?.log) {
+        return;
+    }
+
+    const channel = event.guild.channels.cache.get(guild.config.channels.log);
+    if (!channel) {
+        return;
+    }
+
+    const embed = new MessageEmbed()
+        .setTitle("Нови верификовани корисник")
+        .addField("Discord налог:", `${member.user.tag} (${member.id})`)
+        .addField("Име и презиме:", odgovori[0])
+        .addField("Година студија:", odgovori[1])
+        .addField("Смер:", odgovori[2])
+        .addField("Група:", odgovori[3])
+        .addField("Број на сајту:", odgovori[4]);
+
+    let role;
+    if (guild.config.roles?.notifications) {
+        role = event.guild.roles.cache.get(guild.config.roles?.notifications);
+    }
+
+    const content = role ? role : "";
+    (channel as TextChannel).send(content, { embed: embed });
 }
 
 function provera(argument: string, index: number): string {

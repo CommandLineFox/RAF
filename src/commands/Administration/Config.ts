@@ -53,6 +53,11 @@ export default class Config extends Command {
                 await verifiedSettings(event, option, args, guild);
                 break;
             }
+
+            case "log": {
+                await logSettings(event, option, args, guild);
+                break;
+            }
         }
     }
 }
@@ -212,6 +217,37 @@ async function verifiedSettings(event: CommandEvent, option: string, args: strin
     }
 }
 
+async function logSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const client = event.client;
+    const database = client.database;
+    await databaseCheck(database, guild, "channels");
+
+    if (!option) {
+        await displayData(event, guild, "log", true);
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "set": {
+            const channel = event.guild.channels.cache.find(channel => channel.name === args || channel.id === args || `<#${channel.id}>` === args);
+            if (!channel) {
+                event.send("Нисам могао да нађем канал који тражиш.");
+                return;
+            }
+
+            await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.channels.log": channel.id } });
+            await event.send(`Канал за логовање је постављен на \`${channel.name}\`.`);
+            break;
+        }
+
+        case "remove": {
+            await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
+            await event.send("Канал за логовање је склоњен.");
+            break;
+        }
+    }
+}
+
 async function displayAllSettings(event: CommandEvent, guild: Guild) {
     const embed = new MessageEmbed()
         .setTitle("Подешавања за овај сервер:")
@@ -219,6 +255,7 @@ async function displayAllSettings(event: CommandEvent, guild: Guild) {
         .addField("Модератори", await displayData(event, guild, "moderators"), true)
         .addField("Нотификације", await displayData(event, guild, "notifications"), true)
         .addField("Верификовани", await displayData(event, guild, "verified"), true)
+        .addField("Логовање", await displayData(event, guild, "log"), true)
         .setFooter(`Захтевано од стране ${event.author.tag}`, event.author.displayAvatarURL());
 
     await event.send({ embed: embed });
@@ -298,6 +335,15 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
                 const uloga = event.guild.roles.cache.get(verified);
                 return uloga?.name;
             }
+
+            case "deletion": {
+                if (!guild.config.channels?.log) {
+                    await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
+                    return "None";
+                }
+
+                return `${event.guild.channels.cache.get(guild.config.channels.log)}`;
+            }
         }
     } else {
         switch (type.toLowerCase()) {
@@ -353,6 +399,17 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
 
                 const uloga = event.guild.roles.cache.get(verified);
                 event.send(`Улога за верификоване је ${uloga?.name}`);
+                break;
+            }
+
+            case "log": {
+                if (!guild.config.channels?.log) {
+                    event.send("Нема канала за логовање.");
+                    await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
+                    return;
+                }
+
+                await event.send(`Канал за логовање је <#${event.guild.channels.cache.get(guild.config.channels.log)}>`);
                 break;
             }
         }

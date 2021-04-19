@@ -336,7 +336,7 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
                 return uloga?.name;
             }
 
-            case "deletion": {
+            case "log": {
                 if (!guild.config.channels?.log) {
                     await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
                     return "None";

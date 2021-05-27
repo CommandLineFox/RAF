@@ -10,26 +10,26 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AlexArcticFox/RAF.git"
+    "url": "git+https://github.com/CommandLineFox/RAF.git"
   },
   "author": "Alex",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/AlexArcticFox/RAF/issues"
+    "url": "https://github.com/CommandLineFox/RAF/issues"
   },
-  "homepage": "https://github.com/AlexArcticFox/RAF#readme",
+  "homepage": "https://github.com/CommandLineFox/RAF#readme",
   "dependencies": {
-    "@types/mongodb": "^3.6.12",
-    "@types/node": "^14.14.41",
-    "@types/ws": "^7.4.1",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "bson": "^4.3.0",
+    "@types/mongodb": "^3.6.16",
+    "@types/node": "^14.17.1",
+    "@types/ws": "^7.4.4",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "bson": "^4.4.0",
     "discord.js": "^12.5.3",
-    "eslint": "^7.24.0",
-    "mongodb": "^3.6.6",
+    "eslint": "^7.27.0",
+    "mongodb": "^3.6.9",
     "tscpaths": "^0.0.9",
     "tslint-eslint-rules": "^5.4.0",
-    "typescript": "^4.2.4"
+    "typescript": "^4.3.2"
   }
 }

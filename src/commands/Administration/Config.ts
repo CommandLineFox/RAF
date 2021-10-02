@@ -58,6 +58,21 @@ export default class Config extends Command {
                 await logSettings(event, option, args, guild);
                 break;
             }
+
+            case "years": {
+                await yearSettings(event, option, args, guild);
+                break;
+            }
+
+            case "groups": {
+                await groupSettings(event, option, args, guild);
+                break;
+            }
+
+            case "directions": {
+                await directionSettings(event, option, args, guild);
+                break;
+            }
         }
     }
 }
@@ -248,6 +263,132 @@ async function logSettings(event: CommandEvent, option: string, args: string, gu
     }
 }
 
+async function yearSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const database = event.client.database;
+
+    if (!option) {
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "add": {
+            if (!args) {
+                await event.send("Морате да унесете годину.");
+                return;
+            }
+
+            if (guild.config.roles?.years?.includes(args)) {
+                await event.send("Ова година већ постоји.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$push": { "config.roles.years": args } });
+            await event.send(`\`${args}\` је додата као година.`);
+            break;
+        }
+
+        case "remove": {
+            if (!args) {
+                await event.send("Морате да унесете годину.");
+                return;
+            }
+
+            if (!guild.config.roles?.years?.includes(args)) {
+                await event.send("Ова година није постајала у бази.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.years": args } });
+            await event.send(`\`${args}\` више није година.`);
+            break;
+        }
+    }
+}
+
+async function groupSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const database = event.client.database;
+
+    if (!option) {
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "add": {
+            if (!args) {
+                await event.send("Морате да унесете групу.");
+                return;
+            }
+
+            if (guild.config.roles?.groups?.includes(args)) {
+                await event.send("Ова група већ постоји.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$push": { "config.roles.groups": args } });
+            await event.send(`\`${args}\` је додата као група.`);
+            break;
+        }
+
+        case "remove": {
+            if (!args) {
+                await event.send("Морате да унесете групу.");
+                return;
+            }
+
+            if (!guild.config.roles?.groups?.includes(args)) {
+                await event.send("Ова група није постајала у бази.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.groups": args } });
+            await event.send(`\`${args}\` више није група.`);
+            break;
+        }
+    }
+}
+
+async function directionSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const database = event.client.database;
+
+    if (!option) {
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "add": {
+            if (!args) {
+                await event.send("Морате да унесете смер.");
+                return;
+            }
+
+            if (guild.config.roles?.directions?.includes(args)) {
+                await event.send("Овај смер већ постоји.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$push": { "config.roles.directions": args } });
+            await event.send(`\`${args}\` је додат као смер.`);
+            break;
+        }
+
+        case "remove": {
+            if (!args) {
+                await event.send("Морате да унесете смер.");
+                return;
+            }
+
+            if (!guild.config.roles?.directions?.includes(args)) {
+                await event.send("Овај смер није постајала у бази.");
+                break;
+            }
+
+            await database?.guilds.updateOne({ id: guild.id }, { "$pull": { "config.roles.directions": args } });
+            await event.send(`\`${args}\` више није смер.`);
+            break;
+        }
+    }
+}
+
 async function displayAllSettings(event: CommandEvent, guild: Guild) {
     const embed = new MessageEmbed()
         .setTitle("Подешавања за овај сервер:")
@@ -256,9 +397,11 @@ async function displayAllSettings(event: CommandEvent, guild: Guild) {
         .addField("Нотификације", await displayData(event, guild, "notifications"), true)
         .addField("Верификовани", await displayData(event, guild, "verified"), true)
         .addField("Логовање", await displayData(event, guild, "log"), true)
+        .addField("Године", await displayData(event, guild, "years"), true)
+        .addField("Групе", await displayData(event, guild, "groups"), true)
         .setFooter(`Захтевано од стране ${event.author.tag}`, event.author.displayAvatarURL());
 
-    await event.send({ embed: embed });
+    await event.send(embed);
 }
 
 async function databaseCheck(database: Database, guild: Guild, option: DatabaseCheckOption): Promise<void> {
@@ -339,10 +482,24 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
             case "log": {
                 if (!guild.config.channels?.log) {
                     await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
-                    return "None";
+                    return "Није намештен.";
                 }
 
                 return `${event.guild.channels.cache.get(guild.config.channels.log)}`;
+            }
+
+            case "years": {
+                if (!guild.config.roles?.years || guild.config.roles.years.length == 0) {
+                    return "Нема улога за годину.";
+                }
+                return guild.config.roles.years.join(", ");
+            }
+
+            case "groups": {
+                if (!guild.config.roles?.groups || guild.config.roles.groups.length == 0) {
+                    return "Нема улога за годину.";
+                }
+                return guild.config.roles.groups.join(", ");
             }
         }
     } else {
@@ -374,7 +531,7 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
                 }
 
                 embed.setDescription(list);
-                await event.send({ embed: embed });
+                await event.send(embed);
                 break;
             }
 

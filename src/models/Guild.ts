@@ -4,6 +4,9 @@ export interface Roles {
     moderator?: string[];
     notifications?: string;
     verified?: string;
+    years?: string[];
+    groups?: string[];
+    directions?: string[];
 }
 
 export interface Channels {

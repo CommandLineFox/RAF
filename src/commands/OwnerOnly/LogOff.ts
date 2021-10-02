@@ -18,7 +18,7 @@ export default class LogOff extends Command {
             await event.message.delete();
             event.client.destroy();
         } catch (error) {
-            client.emit("error", error);
+            client.emit("error", (error as Error));
         }
     }
 }

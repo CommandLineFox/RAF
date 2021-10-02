@@ -10,7 +10,7 @@ export default class Eval extends Command {
         super({
             name: "Eval",
             triggers: ["eval", "evaluate"],
-            description: "Извршава дат код",
+            description: "Runs given code",
             group: OwnerOnly,
             botPermissions: ["EMBED_LINKS"]
         });
@@ -29,7 +29,7 @@ export default class Eval extends Command {
             }
 
             const script = parseBlock(argument);
-            const exec = await run(script, { client, message, MessageEmbed, author, }, { filename: message.guild?.id.toString() });
+            const exec = await run(script, { client, message, MessageEmbed, author, Buffer, }, { filename: message.guild?.id.toString() });
             const end = Date.now();
 
             if (typeof exec === "string") {
@@ -38,16 +38,16 @@ export default class Eval extends Command {
                     .addField("Output", makeCodeBlock(exec, "js"))
                     .setFooter(`Script executed in ${end - start}ms`);
 
-                await event.send({ embed: embed });
+                event.send(embed);
             } else {
                 const embed = new MessageEmbed()
                     .addField("Input", makeCodeBlock(script, "js"))
                     .addField("Output", makeCodeBlock(`${exec.name}: ${exec.message}`))
                     .setFooter(`Script executed in ${end - start}ms`);
-                await event.send(embed);
+                event.send(embed);
             }
         } catch (error) {
-            client.emit("error", error);
+            client.emit("error", (error as Error));
         }
     }
 }
@@ -62,7 +62,7 @@ async function run(script: string, ctx: object, opts: object): Promise<string | 
 
         return result;
     } catch (error) {
-        return error;
+        return (error as Error);
     }
 }
 

@@ -55,7 +55,7 @@ export default class Prijava extends Command {
 
             await member.user.send(pitanja[i])
                 .then(async (message) => {
-                    await message.channel.awaitMessages(msg => msg.author === member.user, { max: 1, time: 120000, errors: ["time"], })
+                    await message.channel.awaitMessages({ filter: msg => msg.author === member.user, max: 1, time: 120000, errors: ["time"] })
                         .then((response) => {
                             const odgovor = response.first()!.content;
 
@@ -102,13 +102,14 @@ function addRoles(event: CommandEvent, odgovori: string[], role: Role) {
             case 1:
             case 2:
             case 3: {
-                const role = event.guild.roles.cache.find(role => role.name === odgovori[i]);
-                if (!role) {
+                const grupa = event.guild.roles.cache.find(r => sanitize(r.name).toLowerCase() === odgovori[i].toLowerCase());
+                if (!grupa) {
                     member.user.send("Дошло је до грешке при тражењу улоге. Молимо Вас контактирајте администратора.");
                     return;
                 }
+                console.log(odgovori[i]);
 
-                member.roles.add(role);
+                member.roles.add(grupa);
             }
         }
     }
@@ -140,8 +141,8 @@ function log(event: CommandEvent, guild: Guild, member: GuildMember, odgovori: s
         role = event.guild.roles.cache.get(guild.config.roles?.notifications);
     }
 
-    const content = role ? role : "";
-    (channel as TextChannel).send(content, { embed: embed });
+    const content = role ? role.name : "";
+    (channel as TextChannel).send({ content: content, embeds: [embed] });
 }
 
 function provera(argument: string, index: number): string {

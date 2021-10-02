@@ -24,7 +24,7 @@ async function main() {
 
     const database = new Database(config.db);
     await database.connect();
-    const client = new BotClient(config, database);
+    const client = new BotClient(config, database, config.options);
     await client.login(config.token);
 }
 

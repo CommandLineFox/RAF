@@ -1,9 +1,9 @@
 import Command from "@command/Command";
 import { Public } from "~/Groups";
 import CommandEvent from "@command/CommandEvent";
-import { Grupa, Smer } from "@utils/Types";
 import { GuildMember, MessageEmbed, Role, TextChannel } from "discord.js";
 import { Guild } from "@models/Guild";
+import { capitalizeWords, sanitize, validateGodina, validateGrupa, validateNumber, validateSmer } from "@utils/Utils";
 
 export default class Prijava extends Command {
     public constructor() {
@@ -63,6 +63,7 @@ export default class Prijava extends Command {
                             if (proveren.startsWith("Грешка:")) {
                                 greska = true;
                                 member.user.send(proveren);
+                                database.guilds.updateOne({ id: guild.id }, { "$pull": { "applications": member.id } });
                                 return;
                             }
 
@@ -95,21 +96,21 @@ function addRoles(event: CommandEvent, odgovori: string[], role: Role) {
     for (let i = 0; i < odgovori.length; i++) {
         switch (i) {
             case 0: {
-                member.setNickname(CapitalizeWords(odgovori[0]));
+                member.setNickname(capitalizeWords(odgovori[0]));
                 break;
             }
 
             case 1:
             case 2:
             case 3: {
-                const grupa = event.guild.roles.cache.find(r => sanitize(r.name).toLowerCase() === odgovori[i].toLowerCase());
-                if (!grupa) {
+                const uloga = event.guild.roles.cache.find(r => sanitize(r.name) === sanitize(odgovori[i]));
+                if (!uloga) {
                     member.user.send("Дошло је до грешке при тражењу улоге. Молимо Вас контактирајте администратора.");
+                    event.client.database.guilds.updateOne({ id: event.guild.id }, { "$pull": { "applications": member.id } });
                     return;
                 }
-                console.log(odgovori[i]);
 
-                member.roles.add(grupa);
+                member.roles.add(uloga);
             }
         }
     }
@@ -141,7 +142,7 @@ function log(event: CommandEvent, guild: Guild, member: GuildMember, odgovori: s
         role = event.guild.roles.cache.get(guild.config.roles?.notifications);
     }
 
-    const content = role ? role.name : "";
+    const content = role ? `<@&${role.id}>` : "";
     (channel as TextChannel).send({ content: content, embeds: [embed] });
 }
 
@@ -168,160 +169,4 @@ function provera(argument: string, index: number): string {
     }
 
     return "";
-}
-
-function CapitalizeWords(argument: string): string {
-    return argument.split(" ").map(word => word[0].toUpperCase() + word.substr(1).toLowerCase()).join(" ");
-}
-
-function sanitize(argument: string): string {
-    return replaceCyrillic(argument).replace("č", "c")
-        .replace("ć", "c")
-        .replace("š", "s")
-        .replace("ž", "z")
-        .replace("đ", "dj")
-        .toLowerCase()
-        .trim();
-}
-
-
-function replaceCyrillic(argument: string): string {
-    let result = "";
-    for (const character of argument) {
-        result += CyrillicsToLathin(character) ?? character;
-    }
-
-    return result;
-}
-
-function validateGodina(argument: string): string {
-    let godina = replaceCyrillic(argument);
-
-    if (godina.endsWith(".")) {
-        godina = sanitize(godina.slice(-1));
-    }
-
-    switch (godina) {
-        case "1":
-        case "prva":
-        case "I": {
-            return "Prva godina";
-        }
-
-        case "2":
-        case "druga":
-        case "II": {
-            return "Druga godina";
-        }
-
-        case "3":
-        case "treca":
-        case "III": {
-            return "Treca godina";
-        }
-
-        case "4":
-        case "cetvrta":
-        case "IV": {
-            return "Cetvrta godina";
-        }
-    }
-
-    return "Грешка: Нисте правилно унели годину. Молимо Вас покушајте поново да се верификујете.";
-}
-
-function validateSmer(argument: string): string {
-    const result = sanitize(argument);
-    if (Smer.includes(result.toLowerCase())) {
-        return result.toUpperCase();
-    }
-
-    return "Грешка: Нисте правилно унели смер. Молимо Вас покушајте поново да се верификујете.";
-}
-
-function validateGrupa(argument: string): string {
-    if (Grupa.includes(argument)) {
-        return argument;
-    }
-
-    return "Грешка: Нисте правилно унели групу. Молимо Вас покушајте поново да се верификујете.";
-}
-
-function validateNumber(argument: string): string {
-    const result = parseInt(sanitize(argument));
-    if (!isNaN(result)) {
-        return result.toString();
-    }
-
-    return "Грешка: Нисте правилно унели број. Молимо Вас покушајте поново да се верификујете.";
-}
-
-function CyrillicsToLathin(char: string): string | undefined {
-    switch (char) {
-        case "а": return "a";
-        case "б": return "b";
-        case "ц": return "c";
-        case "д": return "d";
-        case "е": return "e";
-        case "ф": return "f";
-        case "г": return "g";
-        case "х": return "h";
-        case "и": return "i";
-        case "ј": return "j";
-        case "к": return "k";
-        case "л": return "l";
-        case "м": return "m";
-        case "н": return "n";
-        case "о": return "o";
-        case "п": return "p";
-        case "р": return "r";
-        case "с": return "s";
-        case "т": return "t";
-        case "у": return "u";
-        case "в": return "v";
-        case "з": return "z";
-
-        case "А": return "A";
-        case "Б": return "B";
-        case "Ц": return "C";
-        case "Д": return "D";
-        case "Е": return "E";
-        case "Ф": return "F";
-        case "Г": return "G";
-        case "Х": return "H";
-        case "И": return "I";
-        case "Ј": return "J";
-        case "К": return "K";
-        case "Л": return "L";
-        case "М": return "M";
-        case "Н": return "N";
-        case "О": return "O";
-        case "П": return "P";
-        case "Р": return "R";
-        case "С": return "S";
-        case "Т": return "T";
-        case "У": return "U";
-        case "В": return "V";
-        case "З": return "Z";
-
-        case "ч": return "č";
-        case "ћ": return "ć";
-        case "ж": return "ž";
-        case "ш": return "š";
-        case "љ": return "lj";
-        case "њ": return "nj";
-        case "ђ": return "đ";
-        case "џ": return "dž";
-
-        case "Ч": return "Č";
-        case "Ћ": return "Ć";
-        case "Ж": return "Ž";
-        case "Ш": return "Š";
-        case "Љ": return "Lj";
-        case "Њ": return "Nj";
-        case "Ђ": return "Đ";
-        case "Џ": return "Dž";
-    }
-
-    return;
 }

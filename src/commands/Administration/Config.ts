@@ -184,7 +184,7 @@ async function notifRoleSettings(event: CommandEvent, option: string, args: stri
                 return;
             }
 
-            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.notifications": args } });
+            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.notifications": role.id } });
             await event.send(`Улога за нотификације је сада \`${role.name}\``);
             break;
         }
@@ -219,7 +219,7 @@ async function verifiedSettings(event: CommandEvent, option: string, args: strin
                 return;
             }
 
-            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.verified": args } });
+            await database?.guilds.updateOne({ id: guild?.id }, { "$set": { "config.roles.verified": role.id } });
             await event.send(`Улога за верификоване чланове је сада \`${role.name}\``);
             break;
         }

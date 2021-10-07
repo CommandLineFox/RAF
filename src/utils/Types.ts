@@ -1,5 +1,5 @@
 export type DatabaseCheckOption = "roles" | "moderator" | "channels";
-export type DisplayData = "prefix" | "moderators" | "roles" | "notifications" | "verified" | "log" | "years" | "groups" | "directions";
+export type DisplayData = "prefix" | "moderators" | "roles" | "notifications" | "verified" | "log" | "years" | "groups" | "directions" | "faillog";
 
 export const Smer = ["rn", "ri", "rd", "s", "it"];
 export const Godina = ["prva", "druga", "treca", "cetvrta"];

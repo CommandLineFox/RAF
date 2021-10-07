@@ -59,6 +59,11 @@ export default class Config extends Command {
                 break;
             }
 
+            case "fail-log": {
+                await failLogSettings(event, option, args, guild);
+                break;
+            }
+
             case "years": {
                 await yearSettings(event, option, args, guild);
                 break;
@@ -263,6 +268,37 @@ async function logSettings(event: CommandEvent, option: string, args: string, gu
     }
 }
 
+async function failLogSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
+    const client = event.client;
+    const database = client.database;
+    await databaseCheck(database, guild, "channels");
+
+    if (!option) {
+        await displayData(event, guild, "faillog", true);
+        return;
+    }
+
+    switch (option.toLowerCase()) {
+        case "set": {
+            const channel = event.guild.channels.cache.find(channel => channel.name === args || channel.id === args || `<#${channel.id}>` === args);
+            if (!channel) {
+                event.send("Нисам могао да нађем канал који тражиш.");
+                return;
+            }
+
+            await database.guilds.updateOne({ id: guild.id }, { "$set": { "config.channels.failLog": channel.id } });
+            await event.send(`Канал за неуспешно логовање је постављен на \`${channel.name}\`.`);
+            break;
+        }
+
+        case "remove": {
+            await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.failLog": "" } });
+            await event.send("Канал за неуспешно логовање је склоњен.");
+            break;
+        }
+    }
+}
+
 async function yearSettings(event: CommandEvent, option: string, args: string, guild: Guild) {
     const database = event.client.database;
 
@@ -397,6 +433,7 @@ async function displayAllSettings(event: CommandEvent, guild: Guild) {
         .addField("Нотификације", await displayData(event, guild, "notifications"), true)
         .addField("Верификовани", await displayData(event, guild, "verified"), true)
         .addField("Логовање", await displayData(event, guild, "log"), true)
+        .addField("Неуспешне верификације", await displayData(event, guild, "faillog"), true)
         .addField("Године", await displayData(event, guild, "years"), true)
         .addField("Групе", await displayData(event, guild, "groups"), true)
         .setFooter(`Захтевано од стране ${event.author.tag}`, event.author.displayAvatarURL());
@@ -501,6 +538,16 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
                 }
                 return guild.config.roles.groups.join(", ");
             }
+
+            
+            case "faillog": {
+                if (!guild.config.channels?.failLog) {
+                    await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.failLog": "" } });
+                    return "Није намештен.";
+                }
+
+                return `${event.guild.channels.cache.get(guild.config.channels.failLog)}`;
+            }
         }
     } else {
         switch (type.toLowerCase()) {
@@ -567,6 +614,17 @@ async function displayData(event: CommandEvent, guild: Guild, type: DisplayData,
                 }
 
                 await event.send(`Канал за логовање је <#${event.guild.channels.cache.get(guild.config.channels.log)}>`);
+                break;
+            }
+
+            case "faillog": {
+                if (!guild.config.channels?.failLog) {
+                    event.send("Нема канала за логовање.");
+                    await database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.failLog": "" } });
+                    return;
+                }
+
+                await event.send(`Канал за логовање је <#${event.guild.channels.cache.get(guild.config.channels.failLog)}>`);
                 break;
             }
         }

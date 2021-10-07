@@ -11,6 +11,7 @@ export interface Roles {
 
 export interface Channels {
     log?: string;
+    failLog?: string;
 }
 
 export interface GuildConfig {

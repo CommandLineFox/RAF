@@ -49,52 +49,20 @@ export function replaceCyrillic(argument: string): string {
     return result;
 }
 
-export function validateGodina(argument: string): string {
-    let godina = replaceCyrillic(argument);
-
-    if (godina.endsWith(".")) {
-        godina = sanitize(godina.slice(-1));
-    }
-
-    switch (godina) {
-        case "1":
-        case "prva":
-        case "I": {
-            return "Prva godina";
-        }
-
-        case "2":
-        case "druga":
-        case "II": {
-            return "Druga godina";
-        }
-
-        case "3":
-        case "treca":
-        case "III": {
-            return "Treca godina";
-        }
-
-        case "4":
-        case "cetvrta":
-        case "IV": {
-            return "Cetvrta godina";
-        }
-    }
-
-    return "Грешка: Нисте правилно унели годину. Молимо Вас покушајте поново да се верификујете.";
-}
-
 export function validateSmer(argument: string): string {
     const result = sanitize(argument);
     if (Smer.includes(result.toLowerCase())) {
-        return result.toUpperCase();
+        return result.toUpperCase() === "S" ? "IT" : result.toUpperCase();
     }
 
     return "Грешка: Нисте правилно унели смер. Молимо Вас покушајте поново да се верификујете.";
 }
 
 export function validateGrupa(argument: string): string {
+    if (argument === "-") {
+        return argument;
+    }
+
     if (Grupa.includes(argument.trim().toLowerCase())) {
         return argument;
     }
@@ -103,6 +71,10 @@ export function validateGrupa(argument: string): string {
 }
 
 export function validateNumber(argument: string): string {
+    if (argument === "-") {
+        return argument;
+    }
+
     const result = parseInt(sanitize(argument));
     if (!isNaN(result)) {
         return result.toString();

@@ -20,6 +20,7 @@ export default class Config extends Command {
                 new MessageSelectMenu()
                     .setCustomId("select")
                     .setPlaceholder("Изаберите улоге за мејл листу")
+                    .setMinValues(0)
                     .setMaxValues(4)
                     .addOptions([
                         {
@@ -47,4 +48,3 @@ export default class Config extends Command {
         event.send("lol", { components: [row] });
     }
 }
-

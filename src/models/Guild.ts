@@ -1,5 +1,11 @@
 import { ObjectId } from "bson";
 
+export interface Dropdown {
+    label?: string;
+    description?: string;
+    value?: string;
+}
+
 export interface Roles {
     moderator?: string[];
     notifications?: string;
@@ -25,4 +31,6 @@ export interface Guild {
     id: string;
     config: GuildConfig;
     applications: string[];
+    mailList?: Dropdown[];
+    subjects?: Dropdown[];
 }

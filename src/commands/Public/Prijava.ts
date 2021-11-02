@@ -78,6 +78,7 @@ export default class Prijava extends Command {
                             .catch(async () => {
                                 await member.user.send("Прошло је 2 минута. Молимо Вас пријавите се поново.");
                                 await database.guilds.updateOne({ id: guild.id }, { "$pull": { "applications": member.id } });
+                                return;
                             });
                     })
                     .catch(async () => {

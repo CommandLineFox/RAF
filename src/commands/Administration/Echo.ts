@@ -1,5 +1,5 @@
 import Command from "@command/Command";
-import { OwnerOnly } from "~/Groups";
+import { Administration } from "~/Groups";
 import CommandEvent from "@command/CommandEvent";
 
 export default class Echo extends Command {
@@ -8,7 +8,7 @@ export default class Echo extends Command {
             name: "Echo",
             triggers: ["echo", "say"],
             description: "Понавља поруку",
-            group: OwnerOnly
+            group: Administration
         });
     }
 

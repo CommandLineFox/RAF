@@ -6,7 +6,7 @@ export default class Echo extends Command {
     public constructor() {
         super({
             name: "Echo",
-            triggers: ["echo", "say", "реци","кажи"],
+            triggers: ["echo", "say", "реци", "кажи"],
             description: "Понавља поруку",
             group: Administration
         });
@@ -16,7 +16,7 @@ export default class Echo extends Command {
         const client = event.client;
         try {
             await event.message.delete();
-            await event.send(event.argument);
+            await event.send(event.argument, { attachments: event.message.attachments.toJSON() });
         } catch (error) {
             client.emit("error", (error as Error));
         }

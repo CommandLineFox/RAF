@@ -6,7 +6,7 @@ export default class Echo extends Command {
     public constructor() {
         super({
             name: "Echo",
-            triggers: ["echo", "say"],
+            triggers: ["echo", "say", "реци","кажи"],
             description: "Понавља поруку",
             group: Administration
         });

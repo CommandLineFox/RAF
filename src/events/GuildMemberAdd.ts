@@ -1,10 +1,10 @@
-import Event from "@event/Event";
-import BotClient from "~/BotClient";
-import { GuildMember } from "discord.js";
+import Event from "../event/Event";
+import type { BotClient } from "../BotClient";
+import type { GuildMember } from "discord.js";
 
 export default class GuildMemberAdd extends Event {
     public constructor() {
-        super({ name: "guildMemberAdd" });
+        super("guildMemberAdd");
     }
 
     public async callback(client: BotClient, member: GuildMember): Promise<void> {

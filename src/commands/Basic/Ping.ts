@@ -1,32 +1,12 @@
-import Command from "@command/Command";
-import { Basic } from "~/Groups";
-import CommandEvent from "@command/CommandEvent";
-import { MessageEmbed, Message } from "discord.js";
+import Command from "../../command/Command";
+import type { CommandInteraction } from "discord.js";
 
 export default class Ping extends Command {
     public constructor() {
-        super({
-            name: "Ping",
-            triggers: ["ping"],
-            description: "Показује време одзива",
-            group: Basic,
-            botPermissions: ["EMBED_LINKS"]
-        });
+        super("ping", "Proverava vreme odziva");
     }
 
-    public run(event: CommandEvent): void {
-        const client = event.client;
-        try {
-            event.send("Слање...")
-                .then(async (msg) => {
-                    msg = msg as Message;
-                    const ping = new MessageEmbed()
-                        .addField(":hourglass: Време одзива: ", `${msg.createdTimestamp - event.message.createdTimestamp}ms`, false)
-                        .addField(":heartbeat: Откуцај бота: ", `${Math.round(event.client.ws.ping)}ms`, true);
-                    await msg.edit({ content: null, embeds: [ping] });
-                });
-        } catch (error) {
-            client.emit("error", (error as Error));
-        }
+    async execute(interaction: CommandInteraction): Promise<void> {
+        interaction.reply("Pong!");
     }
 }

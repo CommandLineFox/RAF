@@ -1,19 +1,20 @@
-import { connect, Db, MongoClientOptions, Collection } from "mongodb";
-import { Guild } from "@models/Guild";
-import { Student } from "@models/Student";
+import { Collection, Db, MongoClient } from "mongodb";
+import type { Guild } from "./models/Guild";
+import type { Student } from "./models/Student";
 
 interface DatabaseConfig {
-    url: string;
     name: string;
-    mongoOptions?: MongoClientOptions;
+    url: string;
 }
 
 export class Database {
     public db!: Db;
+
     public constructor(protected config: DatabaseConfig) { }
 
     public async connect(): Promise<void> {
-        const client = await connect(this.config.url, this.config.mongoOptions)
+        const client = new MongoClient(this.config.url);
+        await client.connect()
             .catch(error => {
                 throw error;
             });
@@ -32,15 +33,11 @@ export class Database {
         return guild;
     }
 
-    public async getStudent(id: string): Promise<Student | null> {
-        return await this.students.findOne({ id: id });
-    }
-
     public get guilds(): Collection<Guild> {
         return this.db.collection("guilds");
     }
 
     public get students(): Collection<Student> {
-        return this.db.collection("students");
+        return this.db.collection("users");
     }
 }

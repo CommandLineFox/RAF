@@ -23,7 +23,12 @@ export default class NotificationSet extends Subcommand {
             return;
         }
 
-        const channel = interaction.options.getChannel("kanal", true);
+        const channel = interaction.options.get("kanal", true).channel;
+        if (!channel) {
+            interaction.reply({ content: "Дошло је до грешке при приступу каналу.", ephemeral: true });
+            return;
+        }
+
         await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.channels.log": channel.id } });
         interaction.reply(`Kanal za logovanje je postavljen na <#${channel.id}>.`);
     }

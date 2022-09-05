@@ -1,5 +1,4 @@
-import { SlashCommandSubcommandBuilder } from "@discordjs/builders";
-import type { Interaction } from "discord.js";
+import { CommandInteraction, SlashCommandSubcommandBuilder } from "discord.js";
 import type { BotClient } from "../BotClient";
 
 export default abstract class Subcommand {
@@ -11,5 +10,5 @@ export default abstract class Subcommand {
             .setDescription(description);
     }
 
-    public abstract execute(interaction: Interaction, client?: BotClient): void;
+    public abstract execute(interaction: CommandInteraction, client?: BotClient): void;
 }

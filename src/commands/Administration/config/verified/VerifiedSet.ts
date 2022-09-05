@@ -23,7 +23,12 @@ export default class VerifiedSet extends Subcommand {
             return;
         }
 
-        const role = interaction.options.getRole("uloga", true);
+        const role = interaction.options.get("uloga", true).role;
+        if (!role) {
+            interaction.reply({ content: "Дошло је до грешке при приступу аргументу.", ephemeral: true });
+            return;
+        }
+
         await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.verified": role.id } });
         interaction.reply(`Uloga za verifikaciju je postavljena na **${role.name}**.`);
     }

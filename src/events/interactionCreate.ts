@@ -1,4 +1,4 @@
-import type { Interaction } from "discord.js";
+import type { CommandInteraction, Interaction } from "discord.js";
 import type { BotClient } from "../BotClient";
 import type Command from "../command/Command";
 import Event from "../event/Event";
@@ -31,18 +31,26 @@ export default class Ready extends Event {
     }
 }
 
-function hasUserPermission(command: Command, interaction: Interaction): boolean {
-    if (interaction.memberPermissions && command.userPermissions) {
-        return interaction.memberPermissions.has(command.userPermissions);
+function hasUserPermission(command: Command, interaction: CommandInteraction): boolean {
+    if (!command.userPermissions) {
+        return true;
     }
 
-    return false;
+    if (!interaction.memberPermissions) {
+        return false;
+    }
+
+    return interaction.memberPermissions.has(command.userPermissions);
 }
 
-function hasBotPermission(command: Command, interaction: Interaction): boolean {
-    if (interaction.guild?.me?.permissions && command.botPermissions) {
-        return interaction.guild.me.permissions.has(command.botPermissions);
+function hasBotPermission(command: Command, interaction: CommandInteraction): boolean {
+    if (!command.botPermissions) {
+        return true;
     }
 
-    return false;
+    if (!interaction.guild?.members.me?.permissions) {
+        return false;
+    }
+
+    return interaction.guild.members.me.permissions.has(command.botPermissions);
 }

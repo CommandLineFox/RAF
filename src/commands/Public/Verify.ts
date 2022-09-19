@@ -2,11 +2,14 @@ import Command from "../../command/Command";
 import { CommandInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
 import type { BotClient } from "../../BotClient";
 
-const groups = ["101", "102", "103", "120", "121", "122", "123", "124", "125", "1d1", "1d2", "1d3", "1d4", "1d5", "1d6", "1s1", "1s2", "1s3", "1s4", "201", "202", "203", "204", "205", "220", "221", "2d1", "2d2", "2d3", "2d4", "2d5", "2d6", "2s1", "2s2", "301a", "301b", "302", "303", "304", "305", "306", "307", "320", "321", "322", "323", "324", "3d1", "3d2", "3s1", "3s2", "401", "402", "403", "404", "405", "406", "407", "408", "409", "420", "421", "422", "423", "4d1", "4d2", "4d3", "4d4", "4d5", "4d6", "4d7"];
+const groups = ["101", "102", "103", "201", "202", "203", "204", "205", "301a", "301b", "302", "303", "304", "305", "306", "307", "308", "401", "402", "403", "404", "405", "406",
+    "121", "122", "123", "124", "125", "126", "127", "128", "221", "222", "223", "321", "322", "323", "324", "421", "422", "423",
+    "1d1", "1d2", "1d3", "1d4", "2d1", "2d2", "2d3", "2d4", "3d1", "3d2", "3d3", "3d4", "3d5", "4d1", "4d2",
+    "1s1", "1s2", "1s3", "1s4", "2s1", "2s2", "2s3", "3s1", "3s2"];
 
 export default class Verify extends Command {
     public constructor() {
-        super("verify", "Verifikacija u server");
+        super("verify", "Verifikacija u server", undefined, undefined);
         this.data.addStringOption(option =>
             option.setName("ime")
                 .setDescription("Vase ime")
@@ -32,7 +35,7 @@ export default class Verify extends Command {
                 .setDescription("Vasa godina studija")
                 .addChoices({ name: "Prva godina", value: "Prva godina" },
                     { name: "Druga godina", value: "Druga godina" },
-                    { name: "Treca godina", value: "Treca godina" },
+                    { name: "Treća godina", value: "Treća godina" },
                     { name: "Četvrta godina", value: "Četvrta godina" }
                 )
         )
@@ -49,11 +52,11 @@ export default class Verify extends Command {
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {
-        const guild = interaction.guild;
-        if (!guild) {
-            interaction.deferReply();
+        if (!interaction.guild || !interaction.isChatInputCommand()) {
             return;
         }
+
+        const guild = interaction.guild;
         const guildDb = await client.database.getGuild(guild.id);
         if (!guildDb) {
             interaction.reply({ content: "Дошло је до грешке при приступу бази података, молимо Вас контактирајте администратора.", ephemeral: true });
@@ -72,13 +75,18 @@ export default class Verify extends Command {
         }
 
         const member = interaction.member as GuildMember;
+        if (!member.manageable) {
+            interaction.reply({ content: "Не могу да променим Ваше улоге.", ephemeral: true });
+            return;
+        }
+
         let ponovac = false;
-        const ime = interaction.options.get("ime", true).value!.toString();
-        const prezime = interaction.options.get("prezime", true).value!.toString();;
+        const ime = interaction.options.getString("ime", true);
+        const prezime = interaction.options.getString("prezime", true);
 
         member.setNickname(ime + " " + prezime);
 
-        const smer = interaction.options.get("smer", true).value!.toString();;
+        const smer = interaction.options.getString("smer", true);
         const roleSmer = guild.roles.cache.find(role => role.name === smer);
         if (!roleSmer) {
             interaction.reply({ content: "Дошло је до грешке при тражењу улоге за смер, молимо Вас контактирајте администратора.", ephemeral: true });
@@ -87,7 +95,7 @@ export default class Verify extends Command {
 
         member.roles.add(roleSmer);
 
-        const godina = interaction.options.get("godina")?.value?.toString();
+        const godina = interaction.options.getString("godina")
         if (!godina) {
             ponovac = true;
         } else {
@@ -100,17 +108,17 @@ export default class Verify extends Command {
             member.roles.add(roleGodina);
         }
 
-        const grupa = interaction.options.get("grupa");
+        const grupa = interaction.options.getNumber("grupa");
         if (!grupa) {
             ponovac = true;
+
         } else if (!ponovac) {
-            const stringGrupa = grupa.toString()!;
-            if (!groups.includes(stringGrupa)) {
+            if (!groups.includes(grupa.toString())) {
                 interaction.reply({ content: "Унета група не постоји, молимо Вас покушајте поново, уколико је ово грешка контактирајте администратора.", ephemeral: true });
                 return;
             }
 
-            const roleGrupa = guild.roles.cache.find(role => role.name === stringGrupa);
+            const roleGrupa = guild.roles.cache.find(role => role.name === grupa?.toString());
             if (!roleGrupa) {
                 interaction.reply({ content: "Дошло је до грешке при тражењу улоге за групу, молимо Вас контактирајте администратора.", ephemeral: true });
                 return;
@@ -119,7 +127,7 @@ export default class Verify extends Command {
             member.roles.add(roleGrupa);
         }
 
-        const broj = interaction.options.get("broj");
+        const broj = interaction.options.getNumber("broj");
         if (!broj) {
             ponovac = true;
         }
@@ -127,13 +135,13 @@ export default class Verify extends Command {
         member.roles.add(verified);
 
         if (!guildDb?.config.channels?.log) {
-            interaction.deferReply();
+            interaction.reply({ content: "Дошло је до грешке при логовању. Молимо Вас контактирајте администратора.", ephemeral: true });
             return;
         }
 
         const channel = guild.channels.cache.get(guildDb.config.channels.log);
         if (!channel) {
-            interaction.deferReply();
+            interaction.reply({ content: "Дошло је до грешке при логовању. Молимо Вас контактирајте администратора.", ephemeral: true });
             return;
         }
 

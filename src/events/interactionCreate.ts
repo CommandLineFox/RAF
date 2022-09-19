@@ -3,7 +3,7 @@ import type { BotClient } from "../BotClient";
 import type Command from "../command/Command";
 import Event from "../event/Event";
 
-export default class Ready extends Event {
+export default class InteractionCreate extends Event {
     public constructor() {
         super("interactionCreate");
     }

@@ -1,10 +1,10 @@
 import type { CommandInteraction } from "discord.js";
-import type { BotClient } from "../../../../BotClient";
-import Subcommand from "../../../../command/Subcommand";
+import type { BotClient } from "../../../BotClient";
+import Subcommand from "../../../command/Subcommand";
 
-export default class VerifiedSet extends Subcommand {
+export default class NotificationSet extends Subcommand {
     public constructor() {
-        super("set", "Podesi ulogu za verifikovane clanove");
+        super("set", "Podesi ulogu za notifikaciju uspesnog verifikovanja");
         this.data.addRoleOption(option =>
             option.setName("uloga")
                 .setDescription("Izabrana uloga za verifikaciju")
@@ -13,7 +13,7 @@ export default class VerifiedSet extends Subcommand {
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {
-        if (!interaction.guild) {
+        if (!interaction.guild || !interaction.isChatInputCommand()) {
             return;
         }
 
@@ -29,7 +29,7 @@ export default class VerifiedSet extends Subcommand {
             return;
         }
 
-        await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.verified": role.id } });
-        interaction.reply(`Uloga za verifikaciju je postavljena na **${role.name}**.`);
+        await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.notifications": role.id } });
+        interaction.reply(`Uloga za notifikacije je postavljena na **${role.name}**.`);
     }
 }

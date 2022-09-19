@@ -1,10 +1,10 @@
 import type { CommandInteraction } from "discord.js";
-import type { BotClient } from "../../../../BotClient";
-import Subcommand from "../../../../command/Subcommand";
+import type { BotClient } from "../../../BotClient";
+import Subcommand from "../../../command/Subcommand";
 
-export default class VerifiedRemove extends Subcommand {
+export default class LogRemove extends Subcommand {
     public constructor() {
-        super("remove", "Ukloni ulogu za verifikovane clanove");
+        super("remove", "Ukloni kanal za cuvanje verifikacija");
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {
@@ -18,7 +18,7 @@ export default class VerifiedRemove extends Subcommand {
             return;
         }
 
-        await client.database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.roles.verified": "" } });
-        interaction.reply(`Uloga za verifikaciju je uklonjena.`);
+        await client.database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.channels.log": "" } });
+        interaction.reply(`Kanal za logovanje je uklonjen`);
     }
 }

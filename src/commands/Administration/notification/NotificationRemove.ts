@@ -1,6 +1,6 @@
 import type { CommandInteraction } from "discord.js";
-import type { BotClient } from "../../../../BotClient";
-import Subcommand from "../../../../command/Subcommand";
+import type { BotClient } from "../../../BotClient";
+import Subcommand from "../../../command/Subcommand";
 
 export default class NotificationRemove extends Subcommand {
     public constructor() {
@@ -8,7 +8,7 @@ export default class NotificationRemove extends Subcommand {
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {
-        if (!interaction.guild) {
+        if (!interaction.guild || !interaction.isChatInputCommand()) {
             return;
         }
 

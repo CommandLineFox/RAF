@@ -50,13 +50,7 @@ export default class Purge extends Command {
 
         for (const [_, member] of members) {
             interaction.deferReply();
-            if (member.user.bot) {
-                await interaction.editReply(`Прескачем ${member.user.tag} јер је бот.`);
-                continue;
-            }
-
-            if (!member.manageable) {
-                await interaction.editReply(`Прескачем ${member.user.tag} јер том кориснику не могу да приступим.`);
+            if (member.user.bot || !member.manageable) {
                 continue;
             }
 
@@ -67,7 +61,6 @@ export default class Purge extends Command {
             }
 
             if (roles.length == 2) {
-                await interaction.editReply(`Прескачем ${member.user.tag} јер нема ни једну улогу.`);
                 continue;
             }
 
@@ -76,7 +69,7 @@ export default class Purge extends Command {
             await sleep(5000);
         }
 
-        interaction.reply("Готов.");
+        interaction.editReply("Готов.");
     }
 }
 

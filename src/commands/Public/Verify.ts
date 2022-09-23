@@ -1,5 +1,5 @@
 import Command from "../../command/Command";
-import { CommandInteraction, EmbedBuilder, GuildMember, TextChannel } from "discord.js";
+import { CommandInteraction, EmbedBuilder, GuildMember, Role, TextChannel } from "discord.js";
 import type { BotClient } from "../../BotClient";
 
 const groups = ["101", "102", "103", "201", "202", "203", "204", "205", "301a", "301b", "302", "303", "304", "305", "306", "307", "308", "401", "402", "403", "404", "405", "406",
@@ -31,15 +31,6 @@ export default class Verify extends Command {
                 )
         )
         this.data.addStringOption(option =>
-            option.setName("godina")
-                .setDescription("Vasa godina studija")
-                .addChoices({ name: "Prva godina", value: "Prva godina" },
-                    { name: "Druga godina", value: "Druga godina" },
-                    { name: "Treća godina", value: "Treća godina" },
-                    { name: "Četvrta godina", value: "Četvrta godina" }
-                )
-        )
-        this.data.addNumberOption(option =>
             option.setName("grupa")
                 .setDescription("Izbor grupe")
         )
@@ -80,11 +71,17 @@ export default class Verify extends Command {
             return;
         }
 
+        if (member.roles.cache.has(verified.id)) {
+            interaction.reply({ content: "Већ сте верификовани.", ephemeral: true });
+            return;
+        }
+
         let ponovac = false;
         const ime = interaction.options.getString("ime", true);
         const prezime = interaction.options.getString("prezime", true);
 
         member.setNickname(ime + " " + prezime);
+        const list = [] as Role[];
 
         const smer = interaction.options.getString("smer", true);
         const roleSmer = guild.roles.cache.find(role => role.name === smer);
@@ -93,27 +90,14 @@ export default class Verify extends Command {
             return;
         }
 
-        member.roles.add(roleSmer);
+        list.push(roleSmer);
 
-        const godina = interaction.options.getString("godina")
-        if (!godina) {
-            ponovac = true;
-        } else {
-            const roleGodina = guild.roles.cache.find(role => role.name === godina);
-            if (!roleGodina) {
-                interaction.reply({ content: "Дошло је до грешке при тражењу улоге за годину, молимо Вас контактирајте администратора.", ephemeral: true });
-                return;
-            }
-
-            member.roles.add(roleGodina);
-        }
-
-        const grupa = interaction.options.getNumber("grupa");
+        const grupa = interaction.options.getString("grupa");
         if (!grupa) {
             ponovac = true;
 
         } else if (!ponovac) {
-            if (!groups.includes(grupa.toString())) {
+            if (!groups.includes(grupa)) {
                 interaction.reply({ content: "Унета група не постоји, молимо Вас покушајте поново, уколико је ово грешка контактирајте администратора.", ephemeral: true });
                 return;
             }
@@ -124,7 +108,7 @@ export default class Verify extends Command {
                 return;
             }
 
-            member.roles.add(roleGrupa);
+            list.push(roleGrupa);
         }
 
         const broj = interaction.options.getNumber("broj");
@@ -132,7 +116,9 @@ export default class Verify extends Command {
             ponovac = true;
         }
 
-        member.roles.add(verified);
+        list.push(verified);
+
+        await member.roles.add(list);
 
         if (!guildDb?.config.channels?.log) {
             interaction.reply({ content: "Дошло је до грешке при логовању. Молимо Вас контактирајте администратора.", ephemeral: true });
@@ -150,7 +136,6 @@ export default class Verify extends Command {
             .addFields({ name: "Discord налог:", value: `${member.user.tag} (${member.id})` },
                 { name: "Име и презиме:", value: ime + " " + prezime },
                 { name: "Смер:", value: smer },
-                { name: "Година:", value: godina ?? "-" },
                 { name: "Група:", value: `${grupa ?? "-"}` },
                 { name: "Број на сајту:", value: `${broj ?? "-"}` }
             )
@@ -165,7 +150,7 @@ export default class Verify extends Command {
         }
 
         const content = role ? `<@&${role.id}>` : "";
-        (channel as TextChannel).send({ content: content, embeds: [embed] });
+        await (channel as TextChannel).send({ content: content, embeds: [embed] });
         interaction.reply({ content: "Успешно сте се верификовали", ephemeral: true });
     }
 }

@@ -1,5 +1,5 @@
 import Command from "../../command/Command";
-import type { CommandInteraction } from "discord.js";
+import { CommandInteraction, PermissionFlagsBits } from "discord.js";
 import type { BotClient } from "../../BotClient";
 
 const search = ["101", "102", "103", "201", "202", "203", "204", "205", "301a", "301b", "302", "303", "304", "305", "306", "307", "308", "401", "402", "403", "404", "405", "406",
@@ -12,7 +12,7 @@ const search = ["101", "102", "103", "201", "202", "203", "204", "205", "301a", 
 
 export default class Purge extends Command {
     public constructor() {
-        super("purge", "Uklanjanje uloga sa svih clasnova");
+        super("purge", "Uklanjanje uloga sa svih clasnova", undefined, PermissionFlagsBits.Administrator);
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {

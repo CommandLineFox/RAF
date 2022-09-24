@@ -29,7 +29,7 @@ export default class VerifiedSet extends Subcommand {
             return;
         }
 
-        await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.verified": role.id } });
-        interaction.reply(`Улога за верификацију је постављена на **${role.name}**.`);
+        await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.vojnik": role.id } });
+        interaction.reply(`Улога за војнике је постављена на **${role.name}**.`);
     }
 }

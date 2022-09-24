@@ -2,13 +2,13 @@ import type { CommandInteraction } from "discord.js";
 import type { BotClient } from "../../../BotClient";
 import Subcommand from "../../../command/Subcommand";
 
-export default class NotificationRemove extends Subcommand {
+export default class VerifiedRemove extends Subcommand {
     public constructor() {
-        super("remove", "Ukloni ulogu za notifikaciju uspesnog verifikovanja");
+        super("remove", "Ukloni ulogu za verifikovane clanove");
     }
 
     async execute(interaction: CommandInteraction, client: BotClient): Promise<void> {
-        if (!interaction.guild || !interaction.isChatInputCommand()) {
+        if (!interaction.guild) {
             return;
         }
 
@@ -18,7 +18,7 @@ export default class NotificationRemove extends Subcommand {
             return;
         }
 
-        await client.database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.roles.notifications": "" } });
-        interaction.reply(`Улога за нотификације је уклоњена.`);
+        await client.database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.roles.vojnik": "" } });
+        interaction.reply(`Улога за војнике је уклоњена.`);
     }
 }

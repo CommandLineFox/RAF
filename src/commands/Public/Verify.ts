@@ -26,7 +26,7 @@ export default class Verify extends Command {
                 .setRequired(true)
                 .addChoices({ name: "RN", value: "RN" },
                     { name: "RI", value: "RI" },
-                    { name: "RD", value: "RD" },
+                    { name: "MD", value: "MD" },
                     { name: "IT", value: "IT" }
                 )
         )
@@ -69,6 +69,13 @@ export default class Verify extends Command {
         if (!member.manageable) {
             interaction.reply({ content: "Не могу да променим Ваше улоге.", ephemeral: true });
             return;
+        }
+
+        if (guildDb.config.roles.vojnik) {
+            const vojnik = guild.roles.cache.get(guildDb.config.roles.vojnik);
+            if (vojnik) {
+                await member.roles.remove(vojnik);
+            }
         }
 
         if (member.roles.cache.has(verified.id)) {

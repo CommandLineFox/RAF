@@ -30,6 +30,6 @@ export default class NotificationSet extends Subcommand {
         }
 
         await client.database.guilds.updateOne({ id: guild.id }, { "$set": { "config.roles.notifications": role.id } });
-        interaction.reply(`Uloga za notifikacije je postavljena na **${role.name}**.`);
+        interaction.reply(`Улога за нотификације је постављена на **${role.name}**.`);
     }
 }

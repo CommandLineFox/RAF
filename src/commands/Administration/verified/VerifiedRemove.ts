@@ -19,6 +19,6 @@ export default class VerifiedRemove extends Subcommand {
         }
 
         await client.database.guilds.updateOne({ id: guild.id }, { "$unset": { "config.roles.verified": "" } });
-        interaction.reply(`Uloga za verifikaciju je uklonjena.`);
+        interaction.reply(`Улога за верификацију је уклоњена.`);
     }
 }
